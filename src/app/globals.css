@@ -1,0 +1,204 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── B.P. Mandal Academic Hub — an engineering lab record book on a drafting
+   table. Pale graph-rule paper, blueprint ink, one stamp-vermillion accent. ── */
+
+:root {
+  --paper: #f6f7fb;
+  --card: #ffffff;
+  --ink: #101425;
+  --slate: #4b5470;
+  --muted: #7b84a3;
+  --line: #e3e7f2;
+  --blue: #1b4ddb;
+  --blue-press: #0f2fa8;
+  --wash: #e8eeff;
+  --violet: #6d3bd1;
+  --violet-wash: #f0eaff;
+  --flame: #e4572e;
+  --flame-wash: #fdeee8;
+  --rail: #101425;
+  --rail-ink: #e8ecf8;
+  --rail-line: #242b45;
+  --grid: #dde3f0;
+  --ok: #0f8a5f;
+}
+
+.dark {
+  --paper: #0b0e1a;
+  --card: #141a2e;
+  --ink: #eef1fa;
+  --slate: #9aa4c4;
+  --muted: #7a84a6;
+  --line: #262f4c;
+  --blue: #6e93ff;
+  --blue-press: #4c74f0;
+  --wash: #1b2447;
+  --violet: #a487ff;
+  --violet-wash: #211c3f;
+  --flame: #ff8a63;
+  --flame-wash: #2c1a17;
+  --rail: #070a14;
+  --rail-ink: #e6ebff;
+  --rail-line: #1b2340;
+  --grid: #171d33;
+  --ok: #3ecf9a;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-slate: var(--slate);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-blue: var(--blue);
+  --color-bluepress: var(--blue-press);
+  --color-wash: var(--wash);
+  --color-violet: var(--violet);
+  --color-violetwash: var(--violet-wash);
+  --color-flame: var(--flame);
+  --color-flamewash: var(--flame-wash);
+  --color-rail: var(--rail);
+  --color-railink: var(--rail-ink);
+  --color-railline: var(--rail-line);
+  --color-grid: var(--grid);
+  --color-ok: var(--ok);
+
+  --font-display: "Bricolage Grotesque", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+html {
+  background: var(--paper);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv05" 1;
+  overflow-wrap: break-word;
+}
+
+.dark body {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--grid) 70%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--grid) 70%, transparent) 1px, transparent 1px);
+}
+
+/* Title-block micro label: tracked uppercase mono */
+.tblock {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow:
+    0 1px 1px rgb(16 20 37 / 0.03),
+    0 8px 24px -18px rgb(16 20 37 / 0.35);
+}
+
+.hairline {
+  border-top: 1px solid var(--line);
+}
+
+/* Ruled margin, like the red line down a lab record page */
+.ruled {
+  position: relative;
+}
+.ruled::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--blue) 35%, transparent);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--blue) 28%, transparent);
+}
+
+/* ── motion: machined, not bouncy ───────────────────────────────────── */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+@keyframes stamp {
+  from { opacity: 0; transform: scale(1.6) rotate(-8deg); }
+  to { opacity: 1; transform: scale(1) rotate(-1.4deg); }
+}
+@keyframes shimmer {
+  100% { background-position: 200% 0; }
+}
+@keyframes sheetUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.rise { animation: rise 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.pop { animation: pop 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.stamped { animation: stamp 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.sheet { animation: sheetUp 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--line) 60%, transparent) 25%,
+    color-mix(in srgb, var(--line) 25%, transparent) 50%,
+    color-mix(in srgb, var(--line) 60%, transparent) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--slate) 35%, transparent);
+  border-radius: 99px;
+}
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.no-bar::-webkit-scrollbar { display: none; }
+.no-bar { scrollbar-width: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
