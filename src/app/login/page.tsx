@@ -55,7 +55,7 @@ export default function LoginPage() {
             type="email"
             autoComplete="email"
             className={`${INPUT} mt-1.5`}
-            placeholder="arshan.rahman@bpmandal.ac.in"
+            placeholder="you@college.edu"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
@@ -100,20 +100,6 @@ export default function LoginPage() {
           Sign in
         </Button>
       </form>
-
-      <div className="mt-5 rounded-xl border border-line bg-card p-4">
-        <p className="tblock">Demo accounts</p>
-        <ul className="mt-2 space-y-1.5 text-[13px] text-slate">
-          <li>
-            <span className="font-semibold text-ink">arshan@hub.dev</span> ·{" "}
-            <span className="num">demo1234</span> — student
-          </li>
-          <li>
-            <span className="font-semibold text-ink">admin@bpmandal.ac.in</span> ·{" "}
-            <span className="num">admin1234</span> — administrator
-          </li>
-        </ul>
-      </div>
     </AuthShell>
   );
 }

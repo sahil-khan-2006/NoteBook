@@ -64,17 +64,17 @@ export default function RegisterPage() {
       <form onSubmit={submit} className="space-y-4">
         <div>
           <label className={LABEL} htmlFor="r-name">Full name</label>
-          <input id="r-name" className={`${INPUT} mt-1.5`} placeholder="Arshan Rahman" value={form.fullName} onChange={set("fullName")} autoComplete="name" />
+          <input id="r-name" className={`${INPUT} mt-1.5`} placeholder="e.g. Rahul Sharma" value={form.fullName} onChange={set("fullName")} autoComplete="name" />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className={LABEL} htmlFor="r-email">College email</label>
-            <input id="r-email" type="email" className={`${INPUT} mt-1.5`} placeholder="you@bpmandal.ac.in" value={form.email} onChange={set("email")} autoComplete="email" />
+            <input id="r-email" type="email" className={`${INPUT} mt-1.5`} placeholder="you@college.edu" value={form.email} onChange={set("email")} autoComplete="email" />
           </div>
           <div>
             <label className={LABEL} htmlFor="r-roll">Roll number</label>
-            <input id="r-roll" className={`${INPUT} mt-1.5`} placeholder="BCO22017" value={form.rollNumber} onChange={set("rollNumber")} />
+            <input id="r-roll" className={`${INPUT} mt-1.5`} placeholder="e.g. 22BCE1001" value={form.rollNumber} onChange={set("rollNumber")} />
           </div>
         </div>
 
