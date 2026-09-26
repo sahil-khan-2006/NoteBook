@@ -78,7 +78,11 @@ export default function HomePage() {
           {tab === "for-you" ? "For You" : "Following"}
         </h1>
         <span className="tblock">
-          {me ? `${me.branch} • ${semLabel(me.semester)}` : "B.P. Mandal"}
+          {me
+            ? me.role === "professor"
+              ? `${me.branch} • Faculty`
+              : `${me.branch} • ${semLabel(me.semester)}`
+            : "NoteBook"}
         </span>
       </div>
 

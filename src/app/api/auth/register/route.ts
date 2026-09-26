@@ -15,26 +15,37 @@ export async function POST(req: Request) {
       return fail(429, "Too many attempts. Please wait a minute.");
 
     const body = await req.json().catch(() => ({}));
+    const role = body.role === "professor" ? "professor" : "user";
+    const designation = cleanText(body.designation, 60) || "Professor";
     const fullName = cleanText(body.fullName, 120);
     const email = cleanText(body.email, 160).toLowerCase();
     const rollNumber = cleanText(body.rollNumber, 40).toUpperCase();
     const branch = cleanText(body.branch, 48);
     const password = String(body.password ?? "");
     const confirm = String(body.confirmPassword ?? "");
-    const semester = Number(body.semester);
-    const admissionYear = Number(body.admissionYear);
 
     if (fullName.length < 3) return fail(400, "Please enter your full name.");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
       return fail(400, "Please enter a valid email address.");
-    if (!rollNumber || rollNumber.length < 3)
-      return fail(400, "Please enter your roll number.");
+    if (!rollNumber || rollNumber.length < 2)
+      return fail(400, role === "professor" ? "Please enter your Faculty / Employee ID." : "Please enter your roll number.");
     if (!(BRANCHES as readonly string[]).includes(branch))
-      return fail(400, "Please select a valid branch.");
-    if (!(SEMESTERS as readonly number[]).includes(semester))
-      return fail(400, "Please select a semester.");
-    if (!(ADMISSION_YEARS as readonly number[]).includes(admissionYear))
-      return fail(400, "Please select your admission year.");
+      return fail(400, "Please select a valid branch/department.");
+    
+    let semester = 0;
+    let admissionYear = new Date().getFullYear();
+
+    if (role === "professor") {
+      admissionYear = Number(body.admissionYear) || new Date().getFullYear();
+    } else {
+      semester = Number(body.semester);
+      admissionYear = Number(body.admissionYear);
+      if (!(SEMESTERS as readonly number[]).includes(semester))
+        return fail(400, "Please select a semester.");
+      if (!(ADMISSION_YEARS as readonly number[]).includes(admissionYear))
+        return fail(400, "Please select your admission year.");
+    }
+
     if (password.length < 8) return fail(400, "Password must be at least 8 characters.");
     if (password !== confirm) return fail(400, "Passwords do not match.");
 
@@ -59,9 +70,20 @@ export async function POST(req: Request) {
       .from(users)
       .where(eq(users.rollNumber, rollNumber))
       .limit(1);
-    if (existingRoll.length) return fail(409, "An account with this roll number already exists.");
+    if (existingRoll.length)
+      return fail(
+        409,
+        role === "professor"
+          ? "An account with this Faculty / Employee ID already exists."
+          : "An account with this roll number already exists.",
+      );
 
     const passwordHash = await hashPassword(password);
+    const bioText =
+      role === "professor"
+        ? `${designation} • ${branch} Department at NoteBook.`
+        : `${branch} • ${semester}${["st", "nd", "rd"][semester - 1] ?? "th"} semester student at NoteBook.`;
+
     const [user] = await db
       .insert(users)
       .values({
@@ -72,7 +94,8 @@ export async function POST(req: Request) {
         branch,
         semester,
         admissionYear,
-        bio: `${branch} • ${semester}${["st","nd","rd"][semester-1] ?? "th"} semester student at B.P. Mandal College of Engineering, Madhepura.`,
+        role,
+        bio: bioText,
       })
       .returning({ id: users.id });
 

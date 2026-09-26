@@ -60,11 +60,11 @@ export default function ResourcePage({
     );
   }
 
-  const download = async () => {
-    if (!post.fileName) return;
+    const targetFile = post.filePath || post.fileName;
+    if (!targetFile) return;
     try {
       await api(`/api/posts/${post.id}/engage`, { method: "POST", json: { action: "download" } });
-      window.open(`/api/files/${encodeURIComponent(post.fileName)}`, "_blank");
+      window.open(`/api/files/${encodeURIComponent(targetFile)}`, "_blank");
     } catch (e) {
       toast((e as Error).message, "error");
     }

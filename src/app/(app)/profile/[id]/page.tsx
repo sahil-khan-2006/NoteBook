@@ -125,14 +125,25 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
               <Avatar name={user.fullName} src={user.avatarUrl} size={84} />
             </div>
             <div className="min-w-0 flex-1 pb-1">
-              <h1 className="font-display text-xl font-extrabold leading-tight text-ink">
-                {user.fullName}
-              </h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="font-display text-xl font-extrabold leading-tight text-ink">
+                  {user.fullName}
+                </h1>
+                {user.role === "professor" && (
+                  <span className="rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                    Professor
+                  </span>
+                )}
+              </div>
               <p className="text-[13.5px] text-slate">
-                {user.branch} • {semLabel(user.semester)}
+                {user.role === "professor"
+                  ? `${user.branch} Department • Faculty`
+                  : `${user.branch} • ${semLabel(user.semester)}`}
               </p>
               <p className="tblock mt-0.5">
-                {user.rollNumber} · Batch {user.admissionYear}
+                {user.role === "professor"
+                  ? `Faculty ID: ${user.rollNumber} · Joined ${user.admissionYear}`
+                  : `${user.rollNumber} · Batch ${user.admissionYear}`}
               </p>
             </div>
             <div className="flex gap-2 pb-1">
@@ -343,7 +354,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id: string }
       />
 
       <p className="pb-4 text-center tblock">
-        Joined {timeAgo(user.createdAt)} · B.P. Mandal College of Engineering
+        Joined {timeAgo(user.createdAt)} · NoteBook Platform
       </p>
 
       {editing && (

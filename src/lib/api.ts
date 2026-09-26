@@ -17,23 +17,27 @@ export async function handler(
     return await fn();
   } catch (err) {
     if (err instanceof AuthError) return fail(err.status, err.message);
-    let message = "Something went wrong";
-    if (process.env.NODE_ENV !== "production") {
-      const anyErr = err as { message?: string; cause?: { message?: string; code?: string; errors?: Array<{ code?: string }> }; code?: string };
-      const isConnRefused =
-        anyErr?.code === "ECONNREFUSED" ||
-        anyErr?.cause?.code === "ECONNREFUSED" ||
-        anyErr?.cause?.errors?.some((e) => e.code === "ECONNREFUSED") ||
-        anyErr?.message?.includes("ECONNREFUSED");
+    let message = "Something went wrong. Please try again.";
+    const anyErr = err as {
+      message?: string;
+      code?: string;
+      cause?: { message?: string; code?: string; errors?: Array<{ code?: string }> };
+    };
 
-      if (isConnRefused) {
-        message = "Database connection failed (ECONNREFUSED). Please ensure PostgreSQL is running and DATABASE_URL in .env.local is correct.";
-      } else if (anyErr?.cause?.message) {
-        message = `${anyErr.message} — Cause: ${anyErr.cause.message}`;
-      } else if (err instanceof Error) {
-        message = err.message;
-      }
+    const isConnRefused =
+      anyErr?.code === "ECONNREFUSED" ||
+      anyErr?.cause?.code === "ECONNREFUSED" ||
+      anyErr?.cause?.errors?.some((e) => e.code === "ECONNREFUSED") ||
+      anyErr?.message?.includes("ECONNREFUSED");
+
+    if (isConnRefused) {
+      message = "Database connection failed (ECONNREFUSED). Please ensure PostgreSQL is running and DATABASE_URL in .env.local is correct.";
+    } else if (anyErr?.cause?.message) {
+      message = `${anyErr.message} — ${anyErr.cause.message}`;
+    } else if (err instanceof Error && err.message) {
+      message = err.message;
     }
+
     console.error("[api]", err);
     return fail(500, message);
   }

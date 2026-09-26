@@ -20,7 +20,7 @@ export function Crest({ className = "h-9 w-9" }: { className?: string }) {
       viewBox="0 0 64 72"
       className={className}
       role="img"
-      aria-label="B.P. Mandal College of Engineering crest"
+      aria-label="NoteBook emblem"
     >
       <defs>
         <linearGradient id="crestInk" x1="0" y1="0" x2="0" y2="1">

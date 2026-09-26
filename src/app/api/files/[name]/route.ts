@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import { getSessionUser } from "@/lib/auth";
-import { safeJoin, mimeFor } from "@/lib/uploads";
-import { eq } from "drizzle-orm";
+import { resolveFilePath, mimeFor } from "@/lib/uploads";
+import { eq, or } from "drizzle-orm";
 import { db } from "@/db";
 import { posts } from "@/db/schema";
 
@@ -16,18 +16,39 @@ export async function GET(
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   const { name } = await params;
-  const path = safeJoin(name);
-  if (!path) return NextResponse.json({ error: "Bad file name" }, { status: 400 });
+  if (!name) return NextResponse.json({ error: "File name is required" }, { status: 400 });
+
   try {
-    const buf = await readFile(path);
-    const mime = mimeFor(name);
-    const inline = mime === "application/pdf" || mime.startsWith("image/");
+    // 1. Check if the post record matches filePath or fileName
+    const decoded = decodeURIComponent(name);
     const [row] = await db
-      .select({ fileName: posts.fileName })
+      .select({
+        id: posts.id,
+        fileName: posts.fileName,
+        filePath: posts.filePath,
+        mimeType: posts.mimeType,
+      })
       .from(posts)
-      .where(eq(posts.filePath, name))
+      .where(or(eq(posts.filePath, decoded), eq(posts.fileName, decoded)))
       .limit(1);
-    const downloadName = row?.fileName ?? name;
+
+    const diskFileName = row?.filePath || decoded;
+    const downloadName = row?.fileName || diskFileName;
+
+    // 2. Resolve actual file path on disk (checks both primary and temp dir)
+    let fullPath = await resolveFilePath(diskFileName);
+    if (!fullPath && row?.filePath) {
+      fullPath = await resolveFilePath(row.filePath);
+    }
+
+    if (!fullPath) {
+      return NextResponse.json({ error: "File not found on server storage." }, { status: 404 });
+    }
+
+    const buf = await readFile(fullPath);
+    const mime = row?.mimeType || mimeFor(diskFileName);
+    const inline = mime === "application/pdf" || mime.startsWith("image/");
+
     return new NextResponse(new Uint8Array(buf), {
       headers: {
         "Content-Type": mime,
@@ -37,7 +58,8 @@ export async function GET(
         "X-Content-Type-Options": "nosniff",
       },
     });
-  } catch {
-    return NextResponse.json({ error: "File not found" }, { status: 404 });
+  } catch (err) {
+    console.error("[file delivery]", err);
+    return NextResponse.json({ error: "Could not read file." }, { status: 500 });
   }
 }

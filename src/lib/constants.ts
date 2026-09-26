@@ -1,11 +1,10 @@
 export const BRANCHES = [
   "CSE",
-  "CSE AI/ML",
-  "ECE",
-  "EE",
+  "CSE(AI/ML)",
+  "EEE",
+  "3D&AG",
   "ME",
   "CE",
-  "Other",
 ] as const;
 
 export const SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
@@ -14,32 +13,31 @@ export const RESOURCE_TYPES = [
   "Notes",
   "PYQ",
   "Assignment",
-  "Question Bank",
   "Lab Manual",
   "E-book",
   "Reference Material",
   "Syllabus",
-  "Project",
-  "Tutorial",
-  "Video",
-  "Other",
 ] as const;
 
-export const ADMISSION_YEARS = [2022, 2023, 2024, 2025, 2026] as const;
+export const ADMISSION_YEARS = [2024, 2025, 2026] as const;
 
 export const DEFAULT_SUBJECTS = [
-  "Data Structures & Algorithms",
-  "Operating Systems",
-  "DBMS",
-  "Object Oriented Programming",
-  "Machine Learning",
+  "Engineering Mathematics-I",
+  "Engineering Physics",
+  "Introduction to Al",
+  "Computer Fundamentals & Emerging Technologies",
+  "Universal Human Values",
   "Engineering Mathematics",
-  "Computer Networks",
-  "Digital Logic Design",
-  "Electrical Machines",
-  "Thermodynamics",
-  "Surveying",
-  "Analog Electronics",
+  "Essence of Indian Constitution",
+  "Basics of Electrical & Electronics Engineering",
+  "Engineering Chemistry",
+  "TEngineering Mathematics-II",
+  "Communicative English",
+  "Python Programming",
+  "Engineering Graphics and Design",
+  "Introduction to Web Design",
+  "Programming For Problem Solving",
+  "Elements of Mechanical Engineering",
 ];
 
 export const MAX_FILE_BYTES = 20 * 1024 * 1024; // 20 MB
@@ -63,7 +61,7 @@ export const ALLOWED_MIME: Record<string, string[]> = {
 };
 
 export const SEM_LABEL = (n?: number | null) =>
-  n ? `${["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"][n - 1] ?? n} Sem` : "";
+  n ? `${["1st", "2nd", "3rd", "4th"][n - 1] ?? n} Sem` : "";
 
 export function timeAgo(input: string | Date): string {
   const d = typeof input === "string" ? new Date(input) : input;

@@ -54,7 +54,7 @@ export default function ForgotPage() {
     <AuthShell
       title="Reset your password"
       subtitle="We issue a single-use reset token valid for fifteen minutes."
-      caption="Account recovery for the Academic Hub. Your resources, saves and streak are untouched."
+      caption="Account recovery for NoteBook. Your resources, saves and streak are untouched."
       footer={
         <>
           Remembered it?{" "}

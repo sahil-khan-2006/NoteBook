@@ -33,14 +33,14 @@ export default function LoginPage() {
 
   return (
     <AuthShell
-      title="Welcome back"
-      subtitle="Sign in with your college address to pick up your feed, streak and saved resources."
-      caption="Sign in to see what your batch has shared today — unit notes, previous year papers, lab manuals and open requests from your branch."
+      title="Welcome to NoteBook"
+      subtitle="Sign in with your academic address to access resources, streak and discussions."
+      caption="Sign in to explore verified course materials, lecture notes, lab manuals, and peer requests across all departments."
       footer={
         <>
-          New to the hub?{" "}
+          New to NoteBook?{" "}
           <Link href="/register" className="font-semibold text-blue hover:underline">
-            Create your account
+            Create an account
           </Link>
         </>
       }

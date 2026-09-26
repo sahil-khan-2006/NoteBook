@@ -328,7 +328,8 @@ export function PostCard({
         method: "POST",
         json: { action: "download" },
       });
-      window.open(`/api/files/${encodeURIComponent(state.fileName)}`, "_blank");
+      const targetFile = state.filePath || state.fileName;
+      window.open(`/api/files/${encodeURIComponent(targetFile)}`, "_blank");
       toast("Download started.");
     } catch (e) {
       toast((e as Error).message, "error");
@@ -380,15 +381,22 @@ export function PostCard({
           <Avatar name={state.author.fullName} src={state.author.avatarUrl} size={42} />
         </Link>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline gap-x-2">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
             <Link
               href={`/profile/${state.author.id}`}
-              className="font-semibold text-ink hover:text-blue"
+              className="font-semibold text-ink hover:text-blue inline-flex items-center gap-1.5"
             >
               {state.author.fullName}
             </Link>
+            {state.author.role === "professor" && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10.5px] font-semibold text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                Professor
+              </span>
+            )}
             <span className="tblock truncate">
-              {state.author.branch} • {semLabel(state.author.semester)}
+              {state.author.role === "professor"
+                ? `${state.author.branch} • Faculty`
+                : `${state.author.branch} • ${semLabel(state.author.semester)}`}
             </span>
           </div>
           <div className="tblock mt-0.5">

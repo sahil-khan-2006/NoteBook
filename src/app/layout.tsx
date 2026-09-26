@@ -2,10 +2,10 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "B.P. Mandal Academic Hub — Learn • Share • Grow",
+  title: "NoteBook — Academic Resource Platform | Learn • Share • Grow",
   description:
-    "The academic resource network of B.P. Mandal College of Engineering, Madhepura. Share notes, PYQs and lab manuals, request what you need, and build your contribution streak.",
-  applicationName: "B.P. Mandal Academic Hub",
+    "The academic resource platform for students and professors. Share notes, PYQs and lab manuals, request what you need, and build your contribution streak.",
+  applicationName: "NoteBook",
 };
 
 export const viewport: Viewport = {

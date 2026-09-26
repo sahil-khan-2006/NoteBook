@@ -21,11 +21,11 @@ export function AuthAside({ caption }: { caption: string }) {
         <div className="flex items-center gap-3">
           <Crest className="h-12 w-12" />
           <div>
-            <p className="font-display text-lg font-bold leading-tight text-white">
-              B.P. Mandal
+            <p className="font-display text-xl font-extrabold leading-tight tracking-tight text-white">
+              NoteBook
             </p>
             <p className="text-[13px] leading-tight text-white/70">
-              College of Engineering, Madhepura
+              Academic Resource Platform
             </p>
           </div>
         </div>
@@ -81,8 +81,8 @@ export function AuthShell({
         <div className="flex items-center gap-3 px-6 pt-6 lg:hidden">
           <Crest className="h-10 w-10" />
           <div>
-            <p className="font-display text-[15px] font-bold leading-tight text-ink">
-              B.P. Mandal <span className="font-medium text-slate">Academic Hub</span>
+            <p className="font-display text-[17px] font-extrabold leading-tight text-ink">
+              NoteBook <span className="font-medium text-blue text-sm">Academic Hub</span>
             </p>
             <p className="tblock leading-tight">Learn · Share · Grow</p>
           </div>

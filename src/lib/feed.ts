@@ -9,6 +9,7 @@ export type AuthorDto = {
   semester: number;
   avatarUrl: string | null;
   rollNumber: string;
+  role?: string;
 };
 
 export type PostDto = {
@@ -23,6 +24,7 @@ export type PostDto = {
   resourceType: string | null;
   status: string;
   fileName: string | null;
+  filePath: string | null;
   fileSize: number | null;
   filePages: number | null;
   mimeType: string | null;
@@ -50,6 +52,7 @@ const toAuthor = (r: {
   semester: number;
   avatarUrl: string | null;
   rollNumber: string;
+  role?: string;
 }): AuthorDto => ({
   id: r.id,
   fullName: r.fullName,
@@ -57,6 +60,7 @@ const toAuthor = (r: {
   semester: r.semester,
   avatarUrl: r.avatarUrl,
   rollNumber: r.rollNumber,
+  role: r.role ?? "user",
 });
 
 export type FeedFilters = {
@@ -154,13 +158,13 @@ export async function fetchPosts(
 
   const rows = (await db.execute(sql`
     select p.id, p.author_id, p.kind, p.title, p.description, p.branch, p.semester,
-      p.subject, p.unit, p.resource_type, p.status, p.file_name, p.file_size,
+      p.subject, p.unit, p.resource_type, p.status, p.file_name, p.file_path, p.file_size,
       p.file_pages, p.mime_type, p.thumb_url, p.views, p.downloads, p.created_at,
       p.fulfilled_post_id,
       au.full_name, au.branch as au_branch, au.semester as au_semester,
-      au.avatar_url, au.roll_number,
+      au.avatar_url, au.roll_number, au.role as au_role,
       fu.full_name as fu_name, fu.branch as fu_branch, fu.semester as fu_semester,
-      fu.avatar_url as fu_avatar, fu.roll_number as fu_roll
+      fu.avatar_url as fu_avatar, fu.roll_number as fu_roll, fu.role as fu_role
     ${base}
     left join users fu on fu.id = p.fulfilled_by
     where ${where ?? sql`true`}
@@ -278,6 +282,7 @@ async function decorate(
       resourceType: (r.resource_type as string | null) ?? null,
       status: String(r.status),
       fileName: (r.file_name as string | null) ?? null,
+      filePath: (r.file_path as string | null) ?? null,
       fileSize: (r.file_size as number | null) ?? null,
       filePages: (r.file_pages as number | null) ?? null,
       mimeType: (r.mime_type as string | null) ?? null,
@@ -292,6 +297,7 @@ async function decorate(
         semester: Number(r.au_semester),
         avatarUrl: (r.avatar_url as string | null) ?? null,
         rollNumber: String(r.roll_number),
+        role: String(r.au_role || "user"),
       }),
       tags: tagMap.get(id) ?? [],
       likeCount: likeMap.get(id) ?? 0,
@@ -310,6 +316,7 @@ async function decorate(
               semester: Number(r.fu_semester),
               avatarUrl: (r.fu_avatar as string | null) ?? null,
               rollNumber: String(r.fu_roll),
+              role: String(r.fu_role || "user"),
             })
           : null,
       fulfilledPostId: (r.fulfilled_post_id as string | null) ?? null,
