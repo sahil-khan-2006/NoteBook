@@ -35,7 +35,35 @@ export async function GET(
     const diskFileName = row?.filePath || decoded;
     const downloadName = row?.fileName || diskFileName;
 
-    // 2. Resolve actual file path on disk (checks both primary and temp dir)
+    // 2. Check database file storage first (guarantees survival across serverless instances)
+    try {
+      const { pool } = await import("@/db");
+      const dbRes = await pool.query(
+        `SELECT file_name, mime_type, file_size, data FROM file_storage WHERE id = $1 OR id = $2`,
+        [diskFileName, row?.filePath || diskFileName]
+      );
+      if (dbRes.rows.length > 0 && dbRes.rows[0].data) {
+        const fileRow = dbRes.rows[0];
+        const buf = fileRow.data as Buffer;
+        const mime = row?.mimeType || fileRow.mime_type || mimeFor(diskFileName);
+        const inline = mime === "application/pdf" || mime.startsWith("image/");
+        const finalName = downloadName || fileRow.file_name || diskFileName;
+
+        return new NextResponse(new Uint8Array(buf), {
+          headers: {
+            "Content-Type": mime,
+            "Content-Length": String(buf.length),
+            "Content-Disposition": `${inline ? "inline" : "attachment"}; filename="${finalName.replace(/"/g, "")}"`,
+            "Cache-Control": "public, max-age=86400",
+            "X-Content-Type-Options": "nosniff",
+          },
+        });
+      }
+    } catch (dbErr) {
+      console.warn("[file delivery] DB storage check warning:", dbErr);
+    }
+
+    // 3. Resolve actual file path on disk (checks both primary and temp dir)
     let fullPath = await resolveFilePath(diskFileName);
     if (!fullPath && row?.filePath) {
       fullPath = await resolveFilePath(row.filePath);

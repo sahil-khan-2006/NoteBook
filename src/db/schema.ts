@@ -10,6 +10,7 @@ import {
   uniqueIndex,
   index,
   primaryKey,
+  customType,
 } from "drizzle-orm/pg-core";
 
 /* ---------------------------------- users --------------------------------- */
@@ -247,7 +248,21 @@ export const streaks = pgTable("streaks", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const fileStorage = pgTable("file_storage", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  mimeType: varchar("mime_type", { length: 128 }).notNull(),
+  fileSize: integer("file_size").notNull(),
+  data: customType<{ data: Buffer }>({
+    dataType() {
+      return "bytea";
+    },
+  })("data").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type Post = typeof posts.$inferSelect;
 export type CommentRow = typeof comments.$inferSelect;
 export type NotificationRow = typeof notifications.$inferSelect;
+export type FileStorageRow = typeof fileStorage.$inferSelect;

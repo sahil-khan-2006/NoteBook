@@ -77,19 +77,49 @@ async function getWritableDir(): Promise<string> {
 }
 
 export async function saveUpload(file: File, prefix = "res"): Promise<StoredFile> {
-  const targetDir = await getWritableDir();
   const fileName = file.name || "document.bin";
   const ext = path.extname(fileName).toLowerCase() || ".bin";
   const base = `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const storedName = `${base}${ext}`;
   const bytes = Buffer.from(await file.arrayBuffer());
-  await writeFile(path.join(targetDir, storedName), bytes);
+  const mime = mimeFor(storedName);
+
+  // 1. Persist directly to PostgreSQL database so it survives serverless restarts
+  try {
+    const { pool } = await import("@/db");
+    await pool.query(
+      `CREATE TABLE IF NOT EXISTS file_storage (
+        id VARCHAR(255) PRIMARY KEY,
+        file_name VARCHAR(255) NOT NULL,
+        mime_type VARCHAR(128) NOT NULL,
+        file_size INTEGER NOT NULL,
+        data BYTEA NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      )`
+    );
+    await pool.query(
+      `INSERT INTO file_storage (id, file_name, mime_type, file_size, data)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, file_name = EXCLUDED.file_name, file_size = EXCLUDED.file_size`,
+      [storedName, fileName, mime, file.size, bytes]
+    );
+  } catch (dbErr) {
+    console.warn("[uploads] Database persistence warning:", dbErr);
+  }
+
+  // 2. Also write to disk if writable
+  try {
+    const targetDir = await getWritableDir();
+    await writeFile(path.join(targetDir, storedName), bytes);
+  } catch (fsErr) {
+    console.warn("[uploads] Disk write warning:", fsErr);
+  }
 
   return {
     storedName,
     originalName: fileName.replace(/[^\w.\- ()]/g, "_").slice(0, 180),
     size: file.size,
-    mime: mimeFor(storedName),
+    mime,
   };
 }
 
