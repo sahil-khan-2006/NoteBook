@@ -57,6 +57,9 @@ export default function RegisterPage() {
           : "Please provide your Roll Number.",
       );
     }
+    if (role === "professor" && form.rollNumber.trim() !== "0306") {
+      return setError("Invalid Faculty / Employee ID. Verification failed.");
+    }
 
     setBusy(true);
     try {
@@ -169,7 +172,7 @@ export default function RegisterPage() {
             <input
               id="r-roll"
               className={`${INPUT} mt-1.5`}
-              placeholder={role === "professor" ? "FAC-2023-42" : "22BCE1001"}
+              placeholder={role === "professor" ? "Enter Faculty / Employee ID" : "22BCE1001"}
               value={form.rollNumber}
               onChange={set("rollNumber")}
             />

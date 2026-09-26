@@ -35,7 +35,7 @@ export const users = pgTable(
   },
   (t) => ({
     emailIdx: uniqueIndex("users_email_idx").on(t.email),
-    rollIdx: uniqueIndex("users_roll_idx").on(t.rollNumber),
+    rollIdx: index("users_roll_idx").on(t.rollNumber),
   }),
 );
 

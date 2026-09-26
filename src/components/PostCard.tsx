@@ -722,7 +722,7 @@ function FulfilForm({
         />
       </label>
       <label className="mt-3 block text-[13px] font-semibold text-ink">
-        File (PDF, DOC, PPT, image — max 20 MB)
+        File (PDF, DOC, PPT, image — max 5 MB)
         <input
           type="file"
           accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.md,.csv,.png,.jpg,.jpeg,.webp"

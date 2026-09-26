@@ -40,7 +40,7 @@ export const DEFAULT_SUBJECTS = [
   "Elements of Mechanical Engineering",
 ];
 
-export const MAX_FILE_BYTES = 20 * 1024 * 1024; // 20 MB
+export const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
 
 export const ALLOWED_MIME: Record<string, string[]> = {
   "application/pdf": [".pdf"],

@@ -60,7 +60,7 @@ export function validateFile(file: File): string | null {
   if (!extMatches && !mimeMatches) {
     return "Unsupported file type. Please upload a PDF, DOC/DOCX, PPT/PPTX, image, or text file.";
   }
-  if (file.size > MAX_FILE_BYTES) return "File is larger than the 20 MB limit.";
+  if (file.size > MAX_FILE_BYTES) return "File is larger than the 5 MB limit.";
   if (file.size === 0) return "That file appears to be empty.";
   return null;
 }

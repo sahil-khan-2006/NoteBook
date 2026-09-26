@@ -69,7 +69,7 @@ export function CreateSheet({
         return setError("Attach a file — notes, PYQs, a lab manual, anything usable.");
       const ext = `.${file.name.split(".").pop()?.toLowerCase()}`;
       if (!EXT_OK.includes(ext)) return setError("Unsupported file type.");
-      if (file.size > 20 * 1024 * 1024) return setError("File exceeds the 20 MB limit.");
+      if (file.size > 5 * 1024 * 1024) return setError("File exceeds the 5 MB limit.");
     }
 
     setBusy(true);
@@ -233,7 +233,7 @@ export function CreateSheet({
               className="mt-1.5 w-full text-[13px] text-slate file:mr-3 file:rounded-lg file:border-0 file:bg-wash file:px-3.5 file:py-2.5 file:text-[13px] file:font-semibold file:text-blue"
             />
             <p className="mt-1 text-[11.5px] text-muted">
-              PDF · DOC/DOCX · PPT/PPTX · images · text — up to 20 MB.
+              PDF · DOC/DOCX · PPT/PPTX · images · text — up to 5 MB.
             </p>
           </div>
         )}

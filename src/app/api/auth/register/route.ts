@@ -27,8 +27,15 @@ export async function POST(req: Request) {
     if (fullName.length < 3) return fail(400, "Please enter your full name.");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
       return fail(400, "Please enter a valid email address.");
-    if (!rollNumber || rollNumber.length < 2)
-      return fail(400, role === "professor" ? "Please enter your Faculty / Employee ID." : "Please enter your roll number.");
+    if (role === "professor") {
+      if (rollNumber !== "0306") {
+        return fail(403, "Invalid Faculty / Employee ID. Verification failed.");
+      }
+    } else {
+      if (!rollNumber || rollNumber.length < 2)
+        return fail(400, "Please enter your roll number.");
+    }
+
     if (!(BRANCHES as readonly string[]).includes(branch))
       return fail(400, "Please select a valid branch/department.");
     
@@ -65,18 +72,15 @@ export async function POST(req: Request) {
       .limit(1);
     if (existingEmail.length) return fail(409, "An account with this email already exists.");
 
-    const existingRoll = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.rollNumber, rollNumber))
-      .limit(1);
-    if (existingRoll.length)
-      return fail(
-        409,
-        role === "professor"
-          ? "An account with this Faculty / Employee ID already exists."
-          : "An account with this roll number already exists.",
-      );
+    if (role !== "professor") {
+      const existingRoll = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.rollNumber, rollNumber))
+        .limit(1);
+      if (existingRoll.length)
+        return fail(409, "An account with this roll number already exists.");
+    }
 
     const passwordHash = await hashPassword(password);
     const bioText =
