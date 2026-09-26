@@ -60,6 +60,7 @@ export default function ResourcePage({
     );
   }
 
+  const download = async () => {
     const targetFile = post.filePath || post.fileName;
     if (!targetFile) return;
     try {

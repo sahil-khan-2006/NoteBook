@@ -4,7 +4,7 @@ import { posts, tags, postTags, subjects } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { handler, ok, fail } from "@/lib/api";
 import { cleanText, slugifyTag, rateLimit } from "@/lib/security";
-import { saveUpload, validateFile } from "@/lib/uploads";
+import { saveUpload, validateFile, isUploadableFile } from "@/lib/uploads";
 import { notify } from "@/lib/activity";
 import { RESOURCE_TYPES } from "@/lib/constants";
 
@@ -54,7 +54,7 @@ export async function POST(
         request.resourceType ||
         RESOURCE_TYPES[0];
       const file = form.get("file");
-      if (!(file instanceof File) || file.size === 0)
+      if (!isUploadableFile(file) || file.size === 0)
         return fail(400, "Attach the resource file so others can use it.");
       const err = validateFile(file);
       if (err) return fail(400, err);

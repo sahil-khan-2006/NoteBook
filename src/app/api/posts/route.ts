@@ -5,7 +5,7 @@ import { requireUser } from "@/lib/auth";
 import { handler, ok, fail } from "@/lib/api";
 import { cleanText, slugifyTag, rateLimit } from "@/lib/security";
 import { fetchPosts, type FeedFilters, type PostDto } from "@/lib/feed";
-import { saveUpload, validateFile } from "@/lib/uploads";
+import { saveUpload, validateFile, isUploadableFile } from "@/lib/uploads";
 import {
   bumpStreak,
   notify,
@@ -80,13 +80,13 @@ export async function POST(req: Request) {
       return fail(400, "Please choose a valid resource type.");
 
     let stored: Awaited<ReturnType<typeof saveUpload>> | null = null;
-    if (file instanceof File && file.size > 0) {
+    if (file && isUploadableFile(file) && file.size > 0) {
       const err = validateFile(file);
       if (err) return fail(400, err);
       stored = await saveUpload(file, kind === "request" ? "req" : "res");
     }
     let thumbStored: Awaited<ReturnType<typeof saveUpload>> | null = null;
-    if (thumb instanceof File && thumb.size > 0) {
+    if (thumb && isUploadableFile(thumb) && thumb.size > 0) {
       if (thumb.size > MAX_FILE_BYTES) return fail(400, "Cover image is too large.");
       thumbStored = await saveUpload(thumb, "thumb");
     }
