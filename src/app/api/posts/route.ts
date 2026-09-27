@@ -61,8 +61,22 @@ export async function POST(req: Request) {
     const unit = cleanText(form.get("unit"), 40);
     const resourceType = cleanText(form.get("resourceType"), 40);
     const rawTags = String(form.get("tags") ?? "");
+    const externalUrlRaw = cleanText(form.get("externalUrl"), 1000);
     const file = form.get("file");
     const thumb = form.get("thumb");
+
+    let externalUrl: string | null = null;
+    if (externalUrlRaw) {
+      try {
+        const parsed = new URL(externalUrlRaw.startsWith("http://") || externalUrlRaw.startsWith("https://") ? externalUrlRaw : `https://${externalUrlRaw}`);
+        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+          return fail(400, "Please enter a valid HTTP or HTTPS cloud link.");
+        }
+        externalUrl = parsed.toString();
+      } catch {
+        return fail(400, "Please enter a valid cloud link URL.");
+      }
+    }
 
     if (title.length < 4) return fail(400, "Please give your post a clear title.");
     if (!(BRANCHES as readonly string[]).includes(branch))
@@ -91,8 +105,8 @@ export async function POST(req: Request) {
       thumbStored = await saveUpload(thumb, "thumb");
     }
 
-    if (kind === "resource" && !stored && !thumbStored)
-      return fail(400, "Attach a file or a cover image for your resource.");
+    if (kind === "resource" && !stored && !thumbStored && !externalUrl)
+      return fail(400, "Attach a file, cover image, or cloud share link for your resource.");
 
     const [post] = await db
       .insert(posts)
@@ -107,10 +121,11 @@ export async function POST(req: Request) {
         unit: unit || null,
         resourceType: resourceType || null,
         status: "open",
-        fileName: stored?.originalName ?? null,
+        fileName: stored?.originalName ?? (externalUrl ? "Cloud Shared Resource" : null),
         filePath: stored?.storedName ?? null,
+        externalUrl: externalUrl ?? null,
         fileSize: stored?.size ?? null,
-        mimeType: stored?.mime ?? null,
+        mimeType: stored?.mime ?? (externalUrl ? "text/uri-list" : null),
         filePages: null,
         thumbUrl: thumbStored?.storedName ?? null,
       })

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, FileText, Download, Eye, Layers } from "lucide-react";
+import { ArrowLeft, FileText, Download, Eye, Layers, ExternalLink, Link2 } from "lucide-react";
 import type { PostDto } from "@/lib/feed";
 import { api, fmtBytes, fmtCount, semLabel } from "@/lib/client";
 import { PostCard } from "@/components/PostCard";
@@ -61,6 +61,15 @@ export default function ResourcePage({
   }
 
   const download = async () => {
+    if (post.externalUrl) {
+      try {
+        await api(`/api/posts/${post.id}/engage`, { method: "POST", json: { action: "download" } });
+      } catch {
+        /* ignore */
+      }
+      window.open(post.externalUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
     const targetFile = post.filePath || post.fileName;
     if (!targetFile) return;
     try {
@@ -124,17 +133,53 @@ export default function ResourcePage({
               {post.author.rollNumber}
             </p>
           </div>
-          {post.fileName && (
+          {post.externalUrl ? (
+            <a
+              href={post.externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={async () => {
+                try {
+                  await api(`/api/posts/${post.id}/engage`, { method: "POST", json: { action: "download" } });
+                } catch {
+                  /* ignore */
+                }
+              }}
+              className="inline-flex items-center gap-2 rounded-xl bg-blue px-4 py-2.5 text-[13.5px] font-semibold text-white transition-colors hover:bg-bluepress"
+            >
+              <span>Open Link</span> <ExternalLink size={15} />
+            </a>
+          ) : post.fileName ? (
             <button
               onClick={download}
               className="inline-flex items-center gap-2 rounded-xl bg-blue px-4 py-2.5 text-[13.5px] font-semibold text-white transition-colors hover:bg-bluepress"
             >
               <Download size={15} /> Download
             </button>
-          )}
+          ) : null}
         </div>
 
-        {post.fileName && (
+        {post.externalUrl ? (
+          <div className="mx-5 mb-5 flex items-center gap-3 rounded-xl border border-line bg-paper p-3">
+            <div className="grid h-10 w-10 place-items-center rounded-lg bg-violetwash text-violet">
+              <Link2 size={18} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[13.5px] font-semibold text-ink">Cloud Shared Resource</p>
+              <p className="num truncate text-[11.5px] text-muted">
+                {post.externalUrl.replace(/^https?:\/\//, "")} • {fmtCount(post.downloads)} opens
+              </p>
+            </div>
+            <a
+              href={post.externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-blue hover:underline"
+            >
+              Visit <ExternalLink size={12} />
+            </a>
+          </div>
+        ) : post.fileName ? (
           <div className="mx-5 mb-5 flex items-center gap-3 rounded-xl border border-line bg-paper p-3">
             <div className="grid h-10 w-10 place-items-center rounded-lg bg-flamewash text-flame">
               <FileText size={18} />
@@ -146,7 +191,7 @@ export default function ResourcePage({
               </p>
             </div>
           </div>
-        )}
+        ) : null}
       </section>
 
       <PostCard post={post} onChange={(_, p) => setPost((s) => (s ? { ...s, ...p } : s))} />

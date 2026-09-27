@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { FileUp, Megaphone, Loader2 } from "lucide-react";
+import { FileUp, Megaphone, Loader2, Link2, UploadCloud } from "lucide-react";
 import { Modal, Button, useToast } from "@/components/ui";
 import { xhrUpload } from "@/components/PostCard";
 import { BRANCHES, SEMESTERS, RESOURCE_TYPES } from "@/lib/constants";
@@ -27,6 +27,7 @@ export function CreateSheet({
 }) {
   const toast = useToast();
   const [kind, setKind] = useState<"resource" | "request">(defaultKind);
+  const [resourceSource, setResourceSource] = useState<"file" | "link">("file");
   const [progress, setProgress] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,14 +42,16 @@ export function CreateSheet({
     unit: "",
     resourceType: "Notes" as string,
     tags: "",
+    externalUrl: "",
   });
 
   useEffect(() => {
     if (open) {
       setKind(defaultKind);
+      setResourceSource("file");
       setProgress(0);
       setError(null);
-      setForm((f) => ({ ...f, title: "", description: "", tags: "", unit: "" }));
+      setForm((f) => ({ ...f, title: "", description: "", tags: "", unit: "", externalUrl: "" }));
     }
   }, [open, defaultKind]);
 
@@ -62,14 +65,19 @@ export function CreateSheet({
 
     if (form.title.trim().length < 4) return setError("Give your post a clear title.");
     if (kind === "resource") {
-      if (!file && !form.subject) {
-        /* file required for resources */
+      if (resourceSource === "file") {
+        if (!file)
+          return setError("Attach a file — notes, PYQs, a lab manual, anything usable.");
+        const ext = `.${file.name.split(".").pop()?.toLowerCase()}`;
+        if (!EXT_OK.includes(ext)) return setError("Unsupported file type.");
+        if (file.size > 5 * 1024 * 1024) return setError("File exceeds the 5 MB limit.");
+      } else {
+        const link = form.externalUrl.trim();
+        if (!link) return setError("Please enter the cloud share link (Google Drive, Dropbox, OneDrive, etc.).");
+        if (!link.startsWith("http://") && !link.startsWith("https://") && !link.includes(".")) {
+          return setError("Please enter a valid cloud link URL.");
+        }
       }
-      if (!file)
-        return setError("Attach a file — notes, PYQs, a lab manual, anything usable.");
-      const ext = `.${file.name.split(".").pop()?.toLowerCase()}`;
-      if (!EXT_OK.includes(ext)) return setError("Unsupported file type.");
-      if (file.size > 5 * 1024 * 1024) return setError("File exceeds the 5 MB limit.");
     }
 
     setBusy(true);
@@ -84,7 +92,11 @@ export function CreateSheet({
       fd.append("unit", form.unit);
       fd.append("resourceType", kind === "resource" ? form.resourceType : "");
       fd.append("tags", form.tags);
-      if (file) fd.append("file", file);
+      if (kind === "resource" && resourceSource === "link") {
+        fd.append("externalUrl", form.externalUrl.trim());
+      } else if (file) {
+        fd.append("file", file);
+      }
 
       const res = await xhrUpload("/api/posts", fd, setProgress);
       const data = (await res.json()) as { streak?: { current: number } };
@@ -95,7 +107,7 @@ export function CreateSheet({
             }`
           : "Request posted. The network is on it.",
       );
-      setForm((f) => ({ ...f, title: "", description: "", tags: "" }));
+      setForm((f) => ({ ...f, title: "", description: "", tags: "", externalUrl: "" }));
       if (fileRef.current) fileRef.current.value = "";
       onClose();
       setTimeout(() => location.reload(), 400);
@@ -223,18 +235,64 @@ export function CreateSheet({
         </div>
 
         {kind === "resource" && (
-          <div>
-            <label className={LABEL} htmlFor="c-file">File</label>
-            <input
-              id="c-file"
-              ref={fileRef}
-              type="file"
-              accept={EXT_OK.join(",")}
-              className="mt-1.5 w-full text-[13px] text-slate file:mr-3 file:rounded-lg file:border-0 file:bg-wash file:px-3.5 file:py-2.5 file:text-[13px] file:font-semibold file:text-blue"
-            />
-            <p className="mt-1 text-[11.5px] text-muted">
-              PDF · DOC/DOCX · PPT/PPTX · images · text — up to 5 MB.
-            </p>
+          <div className="space-y-3 rounded-xl border border-line bg-card/60 p-3.5">
+            <div>
+              <label className={LABEL}>Upload Method</label>
+              <div className="mt-1.5 grid grid-cols-2 gap-2 rounded-lg bg-paper p-1 border border-line">
+                <button
+                  type="button"
+                  onClick={() => setResourceSource("file")}
+                  className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 px-2 text-xs font-semibold transition-all ${
+                    resourceSource === "file"
+                      ? "bg-blue text-white shadow-sm"
+                      : "text-slate hover:text-ink"
+                  }`}
+                >
+                  <UploadCloud size={14} /> Upload File
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setResourceSource("link")}
+                  className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 px-2 text-xs font-semibold transition-all ${
+                    resourceSource === "link"
+                      ? "bg-blue text-white shadow-sm"
+                      : "text-slate hover:text-ink"
+                  }`}
+                >
+                  <Link2 size={14} /> Cloud Share Link
+                </button>
+              </div>
+            </div>
+
+            {resourceSource === "file" ? (
+              <div>
+                <label className={LABEL} htmlFor="c-file">File</label>
+                <input
+                  id="c-file"
+                  ref={fileRef}
+                  type="file"
+                  accept={EXT_OK.join(",")}
+                  className="mt-1.5 w-full text-[13px] text-slate file:mr-3 file:rounded-lg file:border-0 file:bg-wash file:px-3.5 file:py-2.5 file:text-[13px] file:font-semibold file:text-blue"
+                />
+                <p className="mt-1 text-[11.5px] text-muted">
+                  PDF · DOC/DOCX · PPT/PPTX · images · text — up to 5 MB.
+                </p>
+              </div>
+            ) : (
+              <div>
+                <label className={LABEL} htmlFor="c-link">Cloud Share Link</label>
+                <input
+                  id="c-link"
+                  className={`${INPUT} mt-1.5`}
+                  value={form.externalUrl}
+                  onChange={set("externalUrl")}
+                  placeholder="https://drive.google.com/file/d/... or Dropbox / OneDrive link"
+                />
+                <p className="mt-1 text-[11.5px] text-muted">
+                  Paste a link to Google Drive, Dropbox, Mega, OneDrive, Notion, or any cloud share.
+                </p>
+              </div>
+            )}
           </div>
         )}
 

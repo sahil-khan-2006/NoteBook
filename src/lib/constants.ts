@@ -5,6 +5,17 @@ export const BRANCHES = [
   "3D&AG",
   "ME",
   "CE",
+  "General",
+] as const;
+
+export const PROFESSOR_BRANCHES = [
+  "General",
+  "CSE",
+  "CSE(AI/ML)",
+  "EEE",
+  "3D&AG",
+  "ME",
+  "CE",
 ] as const;
 
 export const SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8] as const;

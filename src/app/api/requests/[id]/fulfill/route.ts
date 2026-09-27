@@ -53,12 +53,32 @@ export async function POST(
         cleanText(form.get("resourceType"), 40) ||
         request.resourceType ||
         RESOURCE_TYPES[0];
+      const externalUrlRaw = cleanText(form.get("externalUrl"), 1000);
       const file = form.get("file");
-      if (!isUploadableFile(file) || file.size === 0)
-        return fail(400, "Attach the resource file so others can use it.");
-      const err = validateFile(file);
-      if (err) return fail(400, err);
-      const stored = await saveUpload(file, "fulfil");
+
+      let externalUrl: string | null = null;
+      if (externalUrlRaw) {
+        try {
+          const parsed = new URL(externalUrlRaw.startsWith("http://") || externalUrlRaw.startsWith("https://") ? externalUrlRaw : `https://${externalUrlRaw}`);
+          if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+            return fail(400, "Please enter a valid HTTP or HTTPS cloud link.");
+          }
+          externalUrl = parsed.toString();
+        } catch {
+          return fail(400, "Please enter a valid cloud link URL.");
+        }
+      }
+
+      let stored: Awaited<ReturnType<typeof saveUpload>> | null = null;
+      if (file && isUploadableFile(file) && file.size > 0) {
+        const err = validateFile(file);
+        if (err) return fail(400, err);
+        stored = await saveUpload(file, "fulfil");
+      }
+
+      if (!stored && !externalUrl) {
+        return fail(400, "Attach a resource file or provide a cloud share link.");
+      }
 
       const [post] = await db
         .insert(posts)
@@ -73,10 +93,11 @@ export async function POST(
           unit: request.unit,
           resourceType,
           status: "open",
-          fileName: stored.originalName,
-          filePath: stored.storedName,
-          fileSize: stored.size,
-          mimeType: stored.mime,
+          fileName: stored?.originalName ?? (externalUrl ? "Cloud Shared Resource" : null),
+          filePath: stored?.storedName ?? null,
+          externalUrl: externalUrl ?? null,
+          fileSize: stored?.size ?? null,
+          mimeType: stored?.mime ?? (externalUrl ? "text/uri-list" : null),
         })
         .returning({ id: posts.id });
       createdPostId = post.id;

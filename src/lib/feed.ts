@@ -25,6 +25,7 @@ export type PostDto = {
   status: string;
   fileName: string | null;
   filePath: string | null;
+  externalUrl: string | null;
   fileSize: number | null;
   filePages: number | null;
   mimeType: string | null;
@@ -158,7 +159,7 @@ export async function fetchPosts(
 
   const rows = (await db.execute(sql`
     select p.id, p.author_id, p.kind, p.title, p.description, p.branch, p.semester,
-      p.subject, p.unit, p.resource_type, p.status, p.file_name, p.file_path, p.file_size,
+      p.subject, p.unit, p.resource_type, p.status, p.file_name, p.file_path, p.external_url, p.file_size,
       p.file_pages, p.mime_type, p.thumb_url, p.views, p.downloads, p.created_at,
       p.fulfilled_post_id,
       au.full_name, au.branch as au_branch, au.semester as au_semester,
@@ -283,6 +284,7 @@ async function decorate(
       status: String(r.status),
       fileName: (r.file_name as string | null) ?? null,
       filePath: (r.file_path as string | null) ?? null,
+      externalUrl: (r.external_url as string | null) ?? null,
       fileSize: (r.file_size as number | null) ?? null,
       filePages: (r.file_pages as number | null) ?? null,
       mimeType: (r.mime_type as string | null) ?? null,

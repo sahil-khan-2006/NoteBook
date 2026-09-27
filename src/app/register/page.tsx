@@ -7,7 +7,7 @@ import { GraduationCap, Award } from "lucide-react";
 import { AuthShell } from "@/components/AuthLayout";
 import { Button } from "@/components/ui";
 import { api } from "@/lib/client";
-import { BRANCHES, SEMESTERS, ADMISSION_YEARS } from "@/lib/constants";
+import { BRANCHES, PROFESSOR_BRANCHES, SEMESTERS, ADMISSION_YEARS } from "@/lib/constants";
 
 const INPUT =
   "w-full rounded-xl border border-line bg-card px-3.5 py-3 text-sm text-ink placeholder:text-muted focus:border-blue focus:outline-none transition-colors";
@@ -106,6 +106,7 @@ export default function RegisterPage() {
             onClick={() => {
               setRole("student");
               setError(null);
+              setForm((prev) => ({ ...prev, branch: BRANCHES[0] }));
             }}
             className={`flex items-center justify-center gap-2 rounded-lg py-2.5 px-3 text-xs sm:text-sm font-semibold transition-all ${
               role === "student"
@@ -122,6 +123,7 @@ export default function RegisterPage() {
             onClick={() => {
               setRole("professor");
               setError(null);
+              setForm((prev) => ({ ...prev, branch: PROFESSOR_BRANCHES[0] }));
             }}
             className={`flex items-center justify-center gap-2 rounded-lg py-2.5 px-3 text-xs sm:text-sm font-semibold transition-all ${
               role === "professor"
@@ -235,7 +237,7 @@ export default function RegisterPage() {
                 value={form.branch}
                 onChange={set("branch")}
               >
-                {BRANCHES.map((b) => (
+                {PROFESSOR_BRANCHES.map((b) => (
                   <option key={b}>{b}</option>
                 ))}
               </select>

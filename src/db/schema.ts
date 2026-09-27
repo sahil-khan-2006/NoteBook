@@ -93,6 +93,7 @@ export const posts = pgTable(
     status: varchar("status", { length: 16 }).notNull().default("open"),
     fileName: varchar("file_name", { length: 220 }),
     filePath: text("file_path"),
+    externalUrl: text("external_url"),
     fileSize: integer("file_size"),
     filePages: integer("file_pages"),
     mimeType: varchar("mime_type", { length: 120 }),

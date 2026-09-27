@@ -17,6 +17,8 @@ import {
   Reply,
   CheckCircle2,
   ArrowUpRight,
+  ExternalLink,
+  Link2,
 } from "lucide-react";
 import type { PostDto, AuthorDto } from "@/lib/feed";
 import { api, fmtCount, fmtBytes, semLabel, timeAgo } from "@/lib/client";
@@ -322,6 +324,18 @@ export function PostCard({
   };
 
   const download = async () => {
+    if (state.externalUrl) {
+      try {
+        await api(`/api/posts/${post.id}/engage`, {
+          method: "POST",
+          json: { action: "download" },
+        });
+      } catch {
+        /* proceed anyway */
+      }
+      window.open(state.externalUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
     if (!state.fileName) return;
     try {
       await api(`/api/posts/${post.id}/engage`, {
@@ -515,7 +529,41 @@ export function PostCard({
       {/* ── preview / title-block file strip ── */}
       <div className="mt-3 grid gap-3 px-4 sm:grid-cols-[1fr_auto] sm:px-5">
         <div className="min-w-0">
-          {state.fileName ? (
+          {state.externalUrl ? (
+            <div className="flex items-center gap-3 rounded-xl border border-line bg-paper p-3">
+              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-violetwash text-violet">
+                <Link2 size={20} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13.5px] font-semibold text-ink">
+                  Cloud Shared Resource
+                </p>
+                <p className="num mt-0.5 truncate text-[11.5px] text-muted">
+                  {state.externalUrl.replace(/^https?:\/\//, "")}
+                </p>
+              </div>
+              <a
+                href={state.externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={async () => {
+                  try {
+                    await api(`/api/posts/${post.id}/engage`, {
+                      method: "POST",
+                      json: { action: "download" },
+                    });
+                  } catch {
+                    /* ignore */
+                  }
+                }}
+                aria-label="Open cloud resource link"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-blue px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-bluepress"
+              >
+                <span>Open Link</span>
+                <ExternalLink size={13} />
+              </a>
+            </div>
+          ) : state.fileName ? (
             <div className="flex items-center gap-3 rounded-xl border border-line bg-paper p-3">
               <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-flamewash text-flame">
                 <FileText size={20} />
@@ -682,19 +730,28 @@ function FulfilForm({
   onDone: (postId?: string) => void;
 }) {
   const toast = useToast();
+  const [source, setSource] = useState<"file" | "link">("file");
   const [file, setFile] = useState<File | null>(null);
+  const [externalUrl, setExternalUrl] = useState("");
   const [title, setTitle] = useState("");
   const [progress, setProgress] = useState(0);
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return toast("Attach a file to fulfil this request.", "error");
+    if (source === "file" && !file) return toast("Attach a file to fulfil this request.", "error");
+    if (source === "link" && !externalUrl.trim())
+      return toast("Please enter a cloud share link to fulfil this request.", "error");
+
     setBusy(true);
     try {
       const fd = new FormData();
       fd.append("title", title);
-      fd.append("file", file);
+      if (source === "link") {
+        fd.append("externalUrl", externalUrl.trim());
+      } else if (file) {
+        fd.append("file", file);
+      }
       const res = await xhrUpload(`/api/requests/${postId}/fulfill`, fd, setProgress);
       const data = (await res.json()) as { fulfilledPostId?: string };
       onDone(data.fulfilledPostId);
@@ -721,15 +778,57 @@ function FulfilForm({
           className="mt-1 w-full rounded-lg border border-line bg-card px-3 py-2 text-sm font-normal text-ink focus:border-blue focus:outline-none"
         />
       </label>
-      <label className="mt-3 block text-[13px] font-semibold text-ink">
-        File (PDF, DOC, PPT, image — max 5 MB)
-        <input
-          type="file"
-          accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.md,.csv,.png,.jpg,.jpeg,.webp"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="mt-1 w-full text-[13px] font-normal text-slate file:mr-3 file:rounded-lg file:border-0 file:bg-blue file:px-3 file:py-2 file:text-[13px] file:font-semibold file:text-white"
-        />
-      </label>
+
+      <div className="mt-3">
+        <span className="block text-[12px] font-semibold uppercase tracking-[0.1em] text-muted">Upload Option</span>
+        <div className="mt-1.5 grid grid-cols-2 gap-2 rounded-lg bg-card p-1 border border-line">
+          <button
+            type="button"
+            onClick={() => setSource("file")}
+            className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 px-2 text-xs font-semibold transition-all ${
+              source === "file"
+                ? "bg-violet text-white shadow-sm"
+                : "text-slate hover:text-ink"
+            }`}
+          >
+            Upload File
+          </button>
+          <button
+            type="button"
+            onClick={() => setSource("link")}
+            className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 px-2 text-xs font-semibold transition-all ${
+              source === "link"
+                ? "bg-violet text-white shadow-sm"
+                : "text-slate hover:text-ink"
+            }`}
+          >
+            Cloud Link
+          </button>
+        </div>
+      </div>
+
+      {source === "file" ? (
+        <label className="mt-3 block text-[13px] font-semibold text-ink">
+          File (PDF, DOC, PPT, image — max 5 MB)
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx,.ppt,.pptx,.txt,.md,.csv,.png,.jpg,.jpeg,.webp"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            className="mt-1 w-full text-[13px] font-normal text-slate file:mr-3 file:rounded-lg file:border-0 file:bg-blue file:px-3 file:py-2 file:text-[13px] file:font-semibold file:text-white"
+          />
+        </label>
+      ) : (
+        <label className="mt-3 block text-[13px] font-semibold text-ink">
+          Cloud Share Link
+          <input
+            value={externalUrl}
+            onChange={(e) => setExternalUrl(e.target.value)}
+            placeholder="https://drive.google.com/... or Dropbox / OneDrive link"
+            className="mt-1 w-full rounded-lg border border-line bg-card px-3 py-2 text-sm font-normal text-ink focus:border-blue focus:outline-none"
+          />
+        </label>
+      )}
+
       {progress > 0 && (
         <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-card">
           <div className="h-full bg-violet transition-all" style={{ width: `${progress}%` }} />
