@@ -1,5 +1,5 @@
 import { sql, eq } from "drizzle-orm";
-import { db } from "@/db";
+import { db, ensureSchema } from "@/db";
 import { posts, tags, postTags, subjects } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { handler, ok, fail } from "@/lib/api";
@@ -17,6 +17,7 @@ export const runtime = "nodejs";
 
 export async function GET(req: Request) {
   return handler(async () => {
+    await ensureSchema();
     await requireUser();
     const url = new URL(req.url);
     const p = url.searchParams;
@@ -47,6 +48,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   return handler(async () => {
+    await ensureSchema();
     const user = await requireUser();
     if (!rateLimit(`post:${user.id}`, 12, 60_000))
       return fail(429, "You are posting too quickly. Take a breath.");

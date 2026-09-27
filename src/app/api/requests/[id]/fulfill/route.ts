@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
+import { db, ensureSchema } from "@/db";
 import { posts, tags, postTags, subjects } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { handler, ok, fail } from "@/lib/api";
@@ -17,6 +17,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   return handler(async () => {
+    await ensureSchema();
     const user = await requireUser();
     if (!rateLimit(`fulfil:${user.id}`, 10, 60_000))
       return fail(429, "Too many fulfilment attempts. Try again shortly.");

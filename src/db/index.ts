@@ -24,4 +24,24 @@ if (process.env.NODE_ENV !== "production") {
   globalForDb.__arenaNextJsPostgresqlPool = pool;
 }
 
+// Ensure non-breaking schema additions exist in the database without dropping data
+let schemaInitPromise: Promise<void> | null = null;
+export async function ensureSchema() {
+  if (!schemaInitPromise) {
+    schemaInitPromise = (async () => {
+      try {
+        await pool.query(
+          `ALTER TABLE posts ADD COLUMN IF NOT EXISTS external_url TEXT`
+        );
+      } catch (err) {
+        console.warn("[db] ensureSchema notice:", err);
+      }
+    })();
+  }
+  return schemaInitPromise;
+}
+
+// Trigger in background once
+ensureSchema().catch(() => {});
+
 export const db = drizzle(pool);
